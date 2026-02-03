@@ -1,5 +1,7 @@
 import pandas as pd
+from dotenv import load_dotenv
 
+load_dotenv()
 
 speeches_prompt =  """Generate a prompt by a user whose answer is the following speech. The prompt can ask about the topic of the speech or 
  Example: 
