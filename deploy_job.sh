@@ -8,7 +8,7 @@
 #SBATCH --error train_dpo.err
 #SBATCH --gpus=1
 module load Miniforge3
-conda activate obama_digital_twin
+conda activate new-env
 
 
 python train_dpo.py
