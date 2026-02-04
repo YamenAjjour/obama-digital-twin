@@ -11,4 +11,4 @@ module load Miniforge3
 conda activate new-env
 
 
-python train_dpo.py
+python obama-digital-twin/train_dpo.py
