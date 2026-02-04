@@ -9,7 +9,7 @@ from transformers import (
     BitsAndBytesConfig,
     TrainingArguments,
 )
-from trl import DPOTrainer
+from trl import DPOTrainer, DPOConfig
 
 # Configuration
 # Note: Using Qwen2.5 as a proxy for Qwen3. Replace with specific model ID if available.
@@ -69,7 +69,7 @@ def train_dpo():
     )
 
     # 6. Training Arguments
-    training_args = TrainingArguments(
+    training_args = DPOConfig(
         output_dir=OUTPUT_DIR,
         per_device_train_batch_size=1,
         gradient_accumulation_steps=8,
@@ -84,6 +84,8 @@ def train_dpo():
         report_to="none",
         remove_unused_columns=False,
         gradient_checkpointing=True,
+        max_legnth=2048,
+        max_prompt_length=512
     )
 
     # 7. Initialize DPO Trainer
@@ -93,8 +95,6 @@ def train_dpo():
         train_dataset=dataset,
         processing_class=tokenizer,
         peft_config=peft_config,
-        max_prompt_length=512,
-        max_length=2048,
     )
 
     # 8. Train and Save
