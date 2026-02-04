@@ -67,7 +67,7 @@ with open("all_obama_speeches.txt") as file:
             quotes_to_write_file.write(speech)
 
 df = pd.DataFrame({"question":questions, "answer":answers})
-df.to_csv("turns.csv")
+df.to_csv("turns.csv", index=False)
 
 df = pd.DataFrame({"speech": cleaned_speeches})
-df.to_csv("cleaned_speeches.csv")
+df.to_csv("cleaned_speeches.csv" , index=False)
