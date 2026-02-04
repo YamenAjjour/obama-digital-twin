@@ -84,7 +84,7 @@ def train_dpo():
         report_to="none",
         remove_unused_columns=False,
         gradient_checkpointing=True,
-        max_legnth=2048,
+        max_length=2048,
         max_prompt_length=512
     )
 
