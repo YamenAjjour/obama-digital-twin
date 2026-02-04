@@ -91,7 +91,6 @@ def train_dpo():
         model=model,
         ref_model=None,  # When using PEFT, ref_model is implicitly the base model with adapter disabled
         args=training_args,
-        beta=0.1,
         train_dataset=dataset,
         tokenizer=tokenizer,
         peft_config=peft_config,
