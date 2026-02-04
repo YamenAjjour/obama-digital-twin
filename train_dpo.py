@@ -89,10 +89,9 @@ def train_dpo():
     # 7. Initialize DPO Trainer
     dpo_trainer = DPOTrainer(
         model=model,
-        ref_model=None,  # When using PEFT, ref_model is implicitly the base model with adapter disabled
         args=training_args,
         train_dataset=dataset,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         peft_config=peft_config,
         max_prompt_length=512,
         max_length=2048,
