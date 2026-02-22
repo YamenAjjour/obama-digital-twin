@@ -33,39 +33,41 @@ def generate_prompts_for_speeches(speeches) -> list[str]:
     prompts = []
     for speech in tqdm(speeches):
         response = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-2.5-flash',
             contents=generate_prompt.format(speech=speech)
         )
         prompts.append(response.text)
-        sleep(120)
+        sleep(1)
     return prompts
 
 def generate_generic_responses(prompts):
     client = create_google_client()
     answers = []
-    for prompt in prompts:
+    for prompt in tqdm(prompts):
         response = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-2.5-flash',
             contents=prompt,
             config=genai.types.GenerateContentConfig(system_instruction=System_prompt),
         )
-        sleep(120)
+        sleep(1)
         answers.append(response.text)
     return answers
 
 
 if __name__ == "__main__":
-    df_sample = pd.read_csv("cleaned_speeches.csv").sample(5)
-    prompts = generate_prompts_for_speeches(df_sample["speech"])
+    # df_sample = pd.read_csv("cleaned_speeches.csv")
+    # prompts = generate_prompts_for_speeches(df_sample["speech"])
+    #
+    # df_sample["prompt"] = prompts
+    #
+    # responses = generate_generic_responses(prompts)
+    # print("finished generic responses")
+    # df_sample["wrong_speech"] = responses
+    # df_sample.to_csv("speech_prompts.csv", index=False, columns=["prompt", "speech", "wrong_speech"])
 
-    df_sample["prompt"] = prompts
-
-    responses = generate_generic_responses(prompts)
-    df_sample["wrong_speech"] = responses
-    df_sample.to_csv("speech_prompts.csv", index=False, columns=["prompt", "speech", "wrong_speech"])
-
-    df_turns = pd.read_csv("turns.csv").sample(5)
+    df_turns = pd.read_csv("turns.csv")
     questions = df_turns["question"]
     answers = generate_generic_responses(questions)
+    print("finished questions")
     df_turns["wrong_answer"] = answers
     df_turns.to_csv("turns_prompts.csv", index=False, columns=["question", "answer", "wrong_answer"])
