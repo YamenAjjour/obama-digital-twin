@@ -22,8 +22,9 @@ if args.simple:
         torch_dtype=torch.bfloat16 if torch.cuda.is_available() and torch.cuda.get_device_capability()[0] >= 8 else torch.float32,
         trust_remote_code=True
     )
+    print("Base model loaded. 1")
     model.eval()
-    
+    print("Base model loaded. 2")
     title = "Obama Digital Twin (Base Model)"
     description = "Chat with the base Qwen2.5-7B-Instruct model (no fine-tuning)."
 else:
@@ -96,4 +97,5 @@ demo = gr.ChatInterface(
 )
 
 if __name__ == "__main__":
+    print("Lunching demo")
     demo.launch(server_name="0.0.0.0")
