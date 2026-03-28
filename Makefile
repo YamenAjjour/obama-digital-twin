@@ -7,4 +7,4 @@ train_model:
 
 
 deploy_model:
-	python deploy.py
+	sbatch deploy_model.sh
