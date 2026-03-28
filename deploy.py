@@ -19,7 +19,6 @@ if args.simple:
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_ID,
         device_map="auto",
-        torch_dtype=torch.bfloat16 if torch.cuda.is_available() and torch.cuda.get_device_capability()[0] >= 8 else torch.float32,
         trust_remote_code=True
     )
     print("Base model loaded. 1")
