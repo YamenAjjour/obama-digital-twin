@@ -1,32 +1,52 @@
+import argparse
 import gradio as gr
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer, BitsAndBytesConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from peft import PeftModel
-from threading import Thread
 
 MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
 ADAPTER_DIR = "qwen_dpo_lora_output"
 
+parser = argparse.ArgumentParser(description="Deploy Obama Digital Twin")
+parser.add_argument("--simple", action="store_true", help="Load base model without quantization and adapter")
+args = parser.parse_args()
+
 print("Loading tokenizer...")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, trust_remote_code=True)
 
-print("Loading base model in 4-bit...")
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.bfloat16,
-)
+if args.simple:
+    print("Loading base model in full precision...")
+    model = AutoModelForCausalLM.from_pretrained(
+        MODEL_ID,
+        device_map="auto",
+        torch_dtype=torch.bfloat16 if torch.cuda.is_available() and torch.cuda.get_device_capability()[0] >= 8 else torch.float32,
+        trust_remote_code=True
+    )
+    model.eval()
+    
+    title = "Obama Digital Twin (Base Model)"
+    description = "Chat with the base Qwen2.5-7B-Instruct model (no fine-tuning)."
+else:
+    print("Loading base model in 4-bit...")
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.bfloat16,
+    )
+    
+    base_model = AutoModelForCausalLM.from_pretrained(
+        MODEL_ID,
+        quantization_config=bnb_config,
+        device_map="auto",
+        trust_remote_code=True
+    )
+    
+    print("Loading PEFT adapter...")
+    model = PeftModel.from_pretrained(base_model, ADAPTER_DIR)
+    model.eval()
 
-base_model = AutoModelForCausalLM.from_pretrained(
-    MODEL_ID,
-    quantization_config=bnb_config,
-    device_map="auto",
-    trust_remote_code=True
-)
-
-print("Loading PEFT adapter...")
-model = PeftModel.from_pretrained(base_model, ADAPTER_DIR)
-model.eval()
+    title = "Obama Digital Twin (DPO)"
+    description = "Chat with the DPO fine-tuned Barack Obama model."
 
 def predict(message, history):
     # Initialize messages with system prompt
@@ -49,32 +69,29 @@ def predict(message, history):
     
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
     
-    streamer = TextIteratorStreamer(tokenizer, timeout=20.0, skip_prompt=True, skip_special_tokens=True)
-    
-    generate_kwargs = dict(
+    # Generate the response synchronously
+    outputs = model.generate(
         input_ids=inputs["input_ids"],
         attention_mask=inputs["attention_mask"],
-        streamer=streamer,
         max_new_tokens=512,
         do_sample=True,
         temperature=0.7,
         top_p=0.9,
     )
     
-    # Generate in background thread
-    t = Thread(target=model.generate, kwargs=generate_kwargs)
-    t.start()
+    # Extract only the newly generated tokens
+    input_length = inputs["input_ids"].shape[1]
+    generated_tokens = outputs[0][input_length:]
     
-    # Yield output as it streams
-    partial_text = ""
-    for new_text in streamer:
-        partial_text += new_text
-        yield partial_text
+    # Decode the response
+    response = tokenizer.decode(generated_tokens, skip_special_tokens=True)
+    
+    return response
 
 demo = gr.ChatInterface(
     predict,
-    title="Obama Digital Twin",
-    description="Chat with the fine-tuned Barack Obama model.",
+    title=title,
+    description=description,
     examples=["What is your vision for the future?", "Can you tell me about the importance of education?"]
 )
 
