@@ -16,4 +16,4 @@ conda activate obama-digital-twin
 
 # Run the deployment script
 # The --host=0.0.0.0 makes the Gradio app accessible from outside the node
-python deploy.py
+python deploy.py --simple
