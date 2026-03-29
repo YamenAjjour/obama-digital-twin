@@ -8,3 +8,4 @@ peft
 datasets
 accelerate
 gradio
+torch
