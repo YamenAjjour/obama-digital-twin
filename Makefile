@@ -12,5 +12,4 @@ push_model:
 	hf auth login
 	hf upload yamenajjour/obama-digital-twin qwen_dpo_lora_output
 
-all:
-	setup_environment train_model push_model
+all: setup_environment train_model push_model
