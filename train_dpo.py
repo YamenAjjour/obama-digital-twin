@@ -95,8 +95,8 @@ def train_dpo():
         labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
         preds = np.where(preds != -100, preds, tokenizer.pad_token_id)
 
-        decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
-        decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
+        decoded_preds = tokenizer.decode(preds, skip_special_tokens=True)
+        decoded_labels = tokenizer.decode(labels, skip_special_tokens=True)
 
         result = bertscore.compute(predictions=decoded_preds, references=decoded_labels, lang="en")
         
