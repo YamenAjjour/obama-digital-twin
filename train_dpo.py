@@ -11,6 +11,7 @@ from transformers import (
     BitsAndBytesConfig,
 )
 from trl import DPOTrainer, DPOConfig
+import mlflow
 
 # Configuration
 # Note: Using Qwen2.5 as a proxy for Qwen3. Replace with specific model ID if available.
@@ -23,21 +24,31 @@ QUESTION_DATASET_FILE ="turns_prompts.csv"
 bertscore = evaluate.load("bertscore")
 
 def train_dpo():
+    # Setup MLflow tracking
+    mlflow.set_tracking_uri("sqlite:///mlflow.db")
+    mlflow.set_experiment("obama-dpo-training")
+
     # 1. Load and Format Dataset
-    if not os.path.exists(SPEECH_DATASET_FILE):
-        raise FileNotFoundError(f"Dataset {SPEECH_DATASET_FILE} not found. Please run generate_alignement_dataset.py first.")
+    if not os.path.exists(SPEECH_DATASET_FILE) or not os.path.exists(QUESTION_DATASET_FILE):
+        raise FileNotFoundError(f"Datasets not found. Please run generate_alignement_dataset.py first.")
 
-    df = pd.read_csv(SPEECH_DATASET_FILE)
+    df_speeches = pd.read_csv(SPEECH_DATASET_FILE)
+    df_speeches = df_speeches.dropna(subset=["prompt", "speech", "wrong_speech"])
     
-    # Drop any rows with missing values to prevent errors
-    df = df.dropna(subset=["prompt", "speech", "wrong_speech"])
+    df_turns = pd.read_csv(QUESTION_DATASET_FILE)
+    df_turns = df_turns.dropna(subset=["question", "answer", "wrong_answer"])
+    
+    # Standardize column names for concatenation
+    df_speeches = df_speeches.rename(columns={"speech": "chosen", "wrong_speech": "rejected"})
+    df_turns = df_turns.rename(columns={"question": "prompt", "answer": "chosen", "wrong_answer": "rejected"})
 
-    # Map columns to DPO format: prompt, chosen, rejected
-    full_dataset = Dataset.from_dict({
-        "prompt": df["prompt"].tolist(),
-        "chosen": df["speech"].tolist(),
-        "rejected": df["wrong_speech"].tolist(),
-    })
+    # Combine both datasets
+    df_combined = pd.concat([
+        df_speeches[["prompt", "chosen", "rejected"]],
+        df_turns[["prompt", "chosen", "rejected"]]
+    ], ignore_index=True)
+
+    full_dataset = Dataset.from_pandas(df_combined)
 
     # Split dataset into train and test
     dataset_split = full_dataset.train_test_split(test_size=0.1, seed=42)
@@ -119,7 +130,7 @@ def train_dpo():
         bf16=True,
         optim="paged_adamw_32bit",
         warmup_ratio=0.1,
-        report_to="none",
+        report_to="mlflow",
         remove_unused_columns=False,
         gradient_checkpointing=True,
         max_length=2048,
