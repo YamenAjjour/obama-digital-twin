@@ -86,8 +86,7 @@ def train_dpo():
 
     def compute_metrics(eval_preds):
         preds, labels = eval_preds
-        if isinstance(preds, tuple):
-            preds = preds[0]
+
             
         # Replace -100 in the labels as we can't decode them.
         labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
