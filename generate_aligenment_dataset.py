@@ -54,6 +54,7 @@ def generate_generic_responses(prompts):
     return answers
 
 
+
 if __name__ == "__main__":
     # df_sample = pd.read_csv("cleaned_speeches.csv")
     # prompts = generate_prompts_for_speeches(df_sample["speech"])
