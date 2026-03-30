@@ -1,3 +1,8 @@
+setup_environment:
+	module load Miniforge3
+	conda activate
+	pip install -r requirements.txt
+
 preprocess_dataset:
 	python preprocess_speeches.py
 	python generate_aligenment_dataset.py
