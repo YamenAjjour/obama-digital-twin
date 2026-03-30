@@ -6,6 +6,7 @@
 #SBATCH --time=24:00:00
 #SBATCH --output train_dpo.out
 #SBATCH --error train_dpo.err
+#SBATCH --exclude gpu001.kisski
 #SBATCH --gpus=1
 module load Miniforge3
 conda activate obama-digital-twin
