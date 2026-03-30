@@ -10,4 +10,4 @@ accelerate
 gradio
 torch
 evaluate
-bertscore
+bert_score
