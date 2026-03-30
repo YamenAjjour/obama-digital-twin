@@ -1,7 +1,7 @@
 ### Obama Digital Twin
 
 This project introduces a ChatBot that captures the style of President Barack Obama. `Qwen2.5-7b` is aligned to capture Obama's style using Direct Policy Optimization.
-The data for the alignment is based on [all obama speeches](https://github.com/q-n-t-m/obamas-speeches/tree/master).  The projected is designed with make as CI/CD tool. You can run ```make all``` to run the whole project. 
+The data for the alignment is based on [all obama speeches](https://github.com/q-n-t-m/obamas-speeches/tree/master). 
 
 To reproduce the digital twin manually, do the following
 
