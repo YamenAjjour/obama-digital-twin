@@ -99,7 +99,8 @@ def train_dpo():
         
         decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
         decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
-
+        print(decoded_labels)
+        print(decoded_preds)
         result = bertscore.compute(predictions=decoded_preds, references=decoded_labels, lang="en")
         
         return {
