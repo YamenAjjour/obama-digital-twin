@@ -80,10 +80,16 @@ def train_dpo():
     tokenizer.pad_token = tokenizer.eos_token
 
     def compute_metrics(eval_preds):
-        preds, labels = eval_preds
-        # DPOTrainer may return a tuple for eval_preds if it passes generated tokens
+        preds, labels = eval_preds.predictions, eval_preds.label_ids
+        
+        # When `generate_during_eval=True` with DPOTrainer, preds is typically a tuple.
+        # It may contain (chosen_logits, rejected_logits, generated_tokens)
         if isinstance(preds, tuple):
-            preds = preds[0]
+            if len(preds) == 3:
+                print("generated tokens")
+                preds = preds[2] # Use generated tokens
+            else:
+                preds = preds[0]
             
         if isinstance(labels, tuple):
             labels = labels[0]
@@ -95,11 +101,8 @@ def train_dpo():
         preds = preds.astype(int)
         labels = labels.astype(int)
 
-        print(preds)
-        print(labels)
         decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
         decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
-
 
         result = bertscore.compute(predictions=decoded_preds, references=decoded_labels, lang="en")
         
