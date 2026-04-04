@@ -79,16 +79,14 @@ def train_dpo():
     tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, trust_remote_code=True)
     tokenizer.pad_token = tokenizer.eos_token
 
-    def preprocess_logits_for_metrics(logits, labels):
-        if isinstance(logits, tuple):
-            logits = logits[0]
-        return logits.argmax(dim=-1)
-
     def compute_metrics(eval_preds):
         preds, labels = eval_preds
+        # DPOTrainer may return a tuple for eval_preds if it passes generated tokens
         if isinstance(preds, tuple):
             preds = preds[0]
-            print("reduced")
+            
+        if isinstance(labels, tuple):
+            labels = labels[0]
         
         # Replace -100 in the labels as we can't decode them.
         labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
@@ -99,8 +97,7 @@ def train_dpo():
         
         decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
         decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
-        print(decoded_labels)
-        print(decoded_preds)
+
         result = bertscore.compute(predictions=decoded_preds, references=decoded_labels, lang="en")
         
         return {
@@ -139,7 +136,8 @@ def train_dpo():
         remove_unused_columns=False,
         gradient_checkpointing=True,
         max_length=2048,
-        max_prompt_length=512
+        max_prompt_length=512,
+        generate_during_eval=True
     )
 
     # 7. Initialize DPO Trainer
@@ -151,7 +149,6 @@ def train_dpo():
         processing_class=tokenizer,
         peft_config=peft_config,
         compute_metrics=compute_metrics,
-        preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
 
     # 8. Train and Save
