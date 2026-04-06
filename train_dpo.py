@@ -97,10 +97,12 @@ def train_dpo():
         # Replace -100 in the labels as we can't decode them.
         labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
         preds = np.where(preds != -100, preds, tokenizer.pad_token_id)
-        
+        print(labels)
+        print(preds)
         preds = preds.astype(int)
         labels = labels.astype(int)
-
+        print(labels)
+        print(preds)
         decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
         decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
 
